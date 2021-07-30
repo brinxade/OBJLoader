@@ -6,28 +6,26 @@
 #include<cstdint>
 #include<vector>
 
-using namespace std;
-
 class OBJLoader
 {
 private:
-	string filename;
-	vector<float> vertices, normals, uv, vertexData;
+	std::string filename;
+	std::vector<float> vertices, normals, uv, vertexData;
 	uint32_t vertexCount, normalCount, uvCount, faceCount, drawVertexCount;
 
 	void load()
 	{
-		ifstream file(filename);
+		std::ifstream file(filename);
 		if (file.is_open())
 		{
-			string line, token, face;
+			std::string line, token, face;
 			float v1 = 0, v2 = 0, v3 = 0, n1 = 0, n2 = 0, n3 = 0, t1 = 0, t2 = 0;
 			uint32_t f_vertex = 0, f_uv = 0, f_normal = 0;
 
-			while (getline(file, line))
+			while (std::getline(file, line))
 			{
-				istringstream iss(line);
-				getline(iss, token, ' ');
+				std::istringstream iss(line);
+				std::getline(iss, token, ' ');
 				
 				if (token == "#")
 					continue;
@@ -56,13 +54,13 @@ private:
 					while (!iss.eof())
 					{
 						iss >> face;
-						istringstream face_vertex_iss(face);
-						string face_vertex_attrib;
+						std::istringstream face_vertex_iss(face);
+						std::string face_vertex_attrib;
 						++faceCount;
 
 						// 0=vertex, 1=texture coordinats, 2=normals
 						int attrib_type = 0;
-						while (getline(face_vertex_iss, face_vertex_attrib, '/'))
+						while (std::getline(face_vertex_iss, face_vertex_attrib, '/'))
 						{
 							bool is_empty = face_vertex_attrib.empty();
 							int index = is_empty ? 0 : stoi(face_vertex_attrib) - 1;
@@ -91,7 +89,7 @@ private:
 	}
 
 public:
-	OBJLoader(string filename)
+	OBJLoader(std::string filename)
 	{
 		this->filename = filename;
 		this->vertexCount = 0;
@@ -104,7 +102,7 @@ public:
 	void show()
 	{
 		for (float x : vertexData)
-			cout << x << " ";
+			std::cout << x << " ";
 	}
 
 	float* getVertexData()
