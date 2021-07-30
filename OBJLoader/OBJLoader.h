@@ -15,16 +15,6 @@ private:
 	vector<float> vertices, normals, uv, vertexData;
 	uint32_t vertexCount, normalCount, uvCount;
 
-public:
-	OBJLoader(string filename)
-	{
-		this->filename = filename;
-		this->vertexCount = 0;
-		this->normalCount = 0;
-		this->uvCount = 0;
-
-		load();
-	}
 
 	void load()
 	{
@@ -39,7 +29,7 @@ public:
 			{
 				istringstream iss(line);
 				getline(iss, token, ' ');
-				
+
 				if (token == "#")
 					continue;
 
@@ -69,7 +59,7 @@ public:
 						iss >> face;
 						istringstream face_vertex_iss(face);
 						string face_vertex_attrib;
-						
+
 						// 0=vertex, 1=texture coordinats, 2=normals
 						int attrib_type = 0;
 						while (getline(face_vertex_iss, face_vertex_attrib, '/'))
@@ -98,6 +88,17 @@ public:
 				}
 			}
 		}
+	}
+
+public:
+	OBJLoader(string filename)
+	{
+		this->filename = filename;
+		this->vertexCount = 0;
+		this->normalCount = 0;
+		this->uvCount = 0;
+
+		load();
 	}
 
 	void show()
