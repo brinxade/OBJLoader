@@ -63,7 +63,7 @@ private:
 						while (std::getline(face_vertex_iss, face_vertex_attrib, '/'))
 						{
 							bool is_empty = face_vertex_attrib.empty();
-							int index = is_empty ? 0 : stoi(face_vertex_attrib) - 1;
+							int index = is_empty ? 0 : std::stoi(face_vertex_attrib) - 1;
 
 							if (attrib_type == 0 && !is_empty)
 							{
@@ -95,6 +95,8 @@ public:
 		this->vertexCount = 0;
 		this->normalCount = 0;
 		this->uvCount = 0;
+		this->faceCount = 0;
+		this->drawVertexCount = 0;
 
 		load();
 	}
