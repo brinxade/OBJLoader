@@ -13,8 +13,7 @@ class OBJLoader
 private:
 	string filename;
 	vector<float> vertices, normals, uv, vertexData;
-	uint32_t vertexCount, normalCount, uvCount;
-
+	uint32_t vertexCount, normalCount, uvCount, faceCount, drawVertexCount;
 
 	void load()
 	{
@@ -29,7 +28,7 @@ private:
 			{
 				istringstream iss(line);
 				getline(iss, token, ' ');
-
+				
 				if (token == "#")
 					continue;
 
@@ -59,6 +58,7 @@ private:
 						iss >> face;
 						istringstream face_vertex_iss(face);
 						string face_vertex_attrib;
+						++faceCount;
 
 						// 0=vertex, 1=texture coordinats, 2=normals
 						int attrib_type = 0;
@@ -110,6 +110,16 @@ public:
 	float* getVertexData()
 	{
 		return vertexData.data();
+	}
+
+	uint32_t getFaceCount()
+	{
+		return faceCount;
+	}
+
+	uint32_t getDrawVertexCount()
+	{
+		return faceCount * 3;
 	}
 
 	uint32_t getVertexCount()
