@@ -5,12 +5,17 @@
 #include<sstream> 
 #include<cstdint>
 #include<vector>
+#include"Vec2.h"
+#include"Vec3.h"
 
 class OBJLoader
 {
 private:
 	std::string filename;
-	std::vector<float> vertices, normals, uv, vertexData;
+	std::vector<int> indexes;
+	std::vector<float> vertexData;
+	std::vector<Vec3> vertices, normals;
+	std::vector<Vec2> uv;
 	uint32_t vertexCount, normalCount, uvCount, faceCount, drawVertexCount;
 
 	void load()
@@ -26,65 +31,88 @@ private:
 			{
 				std::istringstream iss(line);
 				std::getline(iss, token, ' ');
-				
+
 				if (token == "#")
 					continue;
 
 				if (token == "v")
 				{
 					iss >> v1 >> v2 >> v3;
-					vertices.insert(vertices.end(), { v1, v2, v3 });
+					vertices.push_back(Vec3( v1, v2, v3 ));
 					++vertexCount;
 				}
 				else if (token == "vn")
 				{
 					iss >> n1 >> n2 >> n3;
-					normals.insert(normals.end(), { n1, n2, n3 });
+					normals.push_back(Vec3(n1, n2, n3));
 					++normalCount;
 				}
 				else if (token == "vt")
 				{
 					iss >> t1 >> t2;
-					uv.insert(uv.end(), { t1, t2 });
+					uv.push_back(Vec2(t1, t2));
 					++uvCount;
 				}
 				else if (token == "f")
 				{
+					++faceCount;
+
 					// n-vertices in a face
 					while (!iss.eof())
 					{
 						iss >> face;
 						std::istringstream face_vertex_iss(face);
 						std::string face_vertex_attrib;
-						++faceCount;
 
-						// 0=vertex, 1=texture coordinats, 2=normals
-						int attrib_type = 0;
 						while (std::getline(face_vertex_iss, face_vertex_attrib, '/'))
 						{
 							bool is_empty = face_vertex_attrib.empty();
-							int index = is_empty ? 0 : std::stoi(face_vertex_attrib) - 1;
 
-							if (attrib_type == 0 && !is_empty)
-							{
-								index *= 3;
-								vertexData.insert(vertexData.end(), { vertices[index], vertices[index + 1], vertices[index + 2] });
-							}
-							else if (attrib_type == 1 && !is_empty)
-							{
-								index *= 2;
-								vertexData.insert(vertexData.end(), { uv[index], uv[index + 1] });
-							}
-							else if (attrib_type == 2 && !is_empty)
-							{
-								index *= 3;
-								vertexData.insert(vertexData.end(), { normals[index], normals[index + 1], normals[index + 2] });
-							}
-							++attrib_type;
+							if(!is_empty)
+								indexes.push_back(std::stoi(face_vertex_attrib) - 1);
 						}
 					}
 				}
 			}
+		}
+	}
+
+	void compileData()
+	{
+		bool hasTexture = uv.size() > 0;
+		bool hasNormals = normals.size() > 0;
+
+		int attribType = 0;
+		int clipFactor = 3;
+
+		int vertexAttribIdx = 0;
+		int uvAttribIdx = 1;
+		int normalAttribIdx =2;
+
+		if (!hasTexture)
+		{
+			--normalAttribIdx;
+			--clipFactor;
+		}
+
+		if (!hasNormals)
+		{
+			--clipFactor;
+		}
+		
+
+		for (unsigned int i = 1; i <= indexes.size(); i++)
+		{
+			int idx = indexes[i-1];
+
+			if (attribType == vertexAttribIdx)
+				vertexData.insert(vertexData.end(), { vertices[idx].x, vertices[idx].y, vertices[idx].z });
+			else if (hasNormals && attribType == normalAttribIdx)
+				vertexData.insert(vertexData.end(), { normals[idx].x, normals[idx].y, normals[idx].z });
+			else if (hasTexture && attribType == uvAttribIdx)
+				vertexData.insert(vertexData.end(), { uv[idx].x, uv[idx].y });
+			
+			attribType =i % clipFactor;
 		}
 	}
 
@@ -99,6 +127,7 @@ public:
 		this->drawVertexCount = 0;
 
 		load();
+		compileData();
 	}
 
 	void show()
@@ -110,6 +139,18 @@ public:
 	float* getVertexData()
 	{
 		return vertexData.data();
+	}
+
+	uint32_t getCoordsPerVertex()
+	{
+		int coordsPerVertex = 8;
+		if (normals.size() == 0)
+			coordsPerVertex -= 3;
+
+		if (uv.size() == 0)
+			coordsPerVertex -= 2;
+
+		return coordsPerVertex;
 	}
 
 	uint32_t getFaceCount()
